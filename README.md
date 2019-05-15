@@ -211,16 +211,16 @@ The hashtable code is already written and can be found in `hashtable.c`.
           and the `hashtable_delete` function.
         - Free the cache entry.
         - Ensure the size counter for the number of entries in the cache is
-          correct.
+          correct. lol nah.
 
 2. Implement `cache_get()` in `cache.c`.
 
     Algorithm:
 
-    - Attempt to find the cache entry pointer by `path` in the hash table.
-    - If not found, return `NULL`.
-    - Move the cache entry to the head of the doubly-linked list.
-    - Return the cache entry pointer.
+    - Attempt to find the cache entry pointer by `path` in the hash table. OK
+    - If not found, return `NULL`. OK
+    - Move the cache entry to the head of the doubly-linked list. OK
+    - Return the cache entry pointer. OK
 
 3. Add caching functionality to `server.c`.
 

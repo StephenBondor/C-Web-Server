@@ -9,20 +9,13 @@
  */
 struct cache_entry *alloc_entry(char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
 	struct cache_entry *cache_entry = malloc(sizeof(struct cache_entry));
-
 	cache_entry->path = path;   // Endpoint path--key to the cache
     cache_entry->content_type = content_type;
     cache_entry->content_length = content_length;
     cache_entry->content = content;
-
     cache_entry->prev = NULL;
 	cache_entry->next = NULL; // Doubly-linked list
-
 	return cache_entry;
 }
 
@@ -31,11 +24,7 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
  */
 void free_entry(struct cache_entry *entry)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
-    free(entry);
+	free(entry);
 }
 
 /**
@@ -43,11 +32,13 @@ void free_entry(struct cache_entry *entry)
  */
 void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
 {
-    // Insert at the head of the list
-    if (cache->head == NULL) {
+    if (cache->head == NULL) 
+	{
         cache->head = cache->tail = ce;
         ce->prev = ce->next = NULL;
-    } else {
+    } 
+	else 
+	{
         cache->head->prev = ce;
         ce->next = cache->head;
         ce->prev = NULL;
@@ -60,18 +51,18 @@ void dllist_insert_head(struct cache *cache, struct cache_entry *ce)
  */
 void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 {
-    if (ce != cache->head) {
-        if (ce == cache->tail) {
-            // We're the tail
+    if (ce != cache->head) 
+	{
+        if (ce == cache->tail) 
+		{
             cache->tail = ce->prev;
             cache->tail->next = NULL;
-
-        } else {
-            // We're neither the head nor the tail
+        } 
+		else 
+		{
             ce->prev->next = ce->next;
             ce->next->prev = ce->prev;
         }
-
         ce->next = cache->head;
         cache->head->prev = ce;
         ce->prev = NULL;
@@ -88,12 +79,9 @@ void dllist_move_to_head(struct cache *cache, struct cache_entry *ce)
 struct cache_entry *dllist_remove_tail(struct cache *cache)
 {
     struct cache_entry *oldtail = cache->tail;
-
     cache->tail = oldtail->prev;
     cache->tail->next = NULL;
-
     cache->cur_size--;
-
     return oldtail;
 }
 
@@ -107,30 +95,24 @@ struct cache *cache_create(int max_size, int hashsize)
 {
    	struct cache *cache = malloc(sizeof(struct cache_entry));
 	struct hashtable *ht = hashtable_create(hashsize, NULL);
-
-	cache->index = ht; 				// the new hashtable 
-    cache->head = NULL; 			// Doubly-linked list head
-	cache->tail = NULL; 			// Doubly-linked list tail
-    cache->max_size = max_size; 	// Maximum number of entries
-    cache->cur_size = 0; 			// Current number of entries
-
+	cache->index = ht; 				
+    cache->head = NULL; 			
+	cache->tail = NULL; 			
+    cache->max_size = max_size; 	
+    cache->cur_size = 0; 			
 	return cache;
 }
 
 void cache_free(struct cache *cache)
 {
     struct cache_entry *cur_entry = cache->head;
-
     hashtable_destroy(cache->index);
-
-    while (cur_entry != NULL) {
+    while (cur_entry != NULL) 
+	{
         struct cache_entry *next_entry = cur_entry->next;
-
         free_entry(cur_entry);
-
         cur_entry = next_entry;
     }
-
     free(cache);
 }
 
@@ -143,7 +125,6 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-	printf("got here\n");
 	struct cache_entry *cache_entry = alloc_entry(path, content_type, content, content_length);
 	dllist_insert_head(cache, cache_entry);
 	hashtable_put(cache->index, cache_entry->path, cache_entry);
@@ -160,8 +141,14 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
  */
 struct cache_entry *cache_get(struct cache *cache, char *path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-	return NULL;
+	int *result = hashtable_get(cache->index, path);
+	if (!result)
+	{
+		return NULL;
+	} 
+	else 
+	{
+		dllist_move_to_head(cache, result);
+		return result;
+	}
 }
