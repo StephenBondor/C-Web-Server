@@ -12,6 +12,18 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+	struct cache_entry *cache_entry = malloc(sizeof(struct cache_entry));
+
+	cache_entry->path = path;   // Endpoint path--key to the cache
+    cache_entry->content_type = content_type;
+    cache_entry->content_length = content_length;
+    cache_entry->content = content;
+
+    cache_entry->prev = NULL;
+	cache_entry->next = NULL; // Doubly-linked list
+
+	return cache_entry;
 }
 
 /**
@@ -22,6 +34,8 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    free(entry);
 }
 
 /**
@@ -91,9 +105,16 @@ struct cache_entry *dllist_remove_tail(struct cache *cache)
  */
 struct cache *cache_create(int max_size, int hashsize)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+   	struct cache *cache = malloc(sizeof(struct cache_entry));
+	struct hashtable *ht = hashtable_create(hashsize, NULL);
+
+	cache->index = ht; 				// the new hashtable 
+    cache->head = NULL; 			// Doubly-linked list head
+	cache->tail = NULL; 			// Doubly-linked list tail
+    cache->max_size = max_size; 	// Maximum number of entries
+    cache->cur_size = 0; 			// Current number of entries
+
+	return cache;
 }
 
 void cache_free(struct cache *cache)
@@ -122,9 +143,16 @@ void cache_free(struct cache *cache)
  */
 void cache_put(struct cache *cache, char *path, char *content_type, void *content, int content_length)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+	printf("got here\n");
+	struct cache_entry *cache_entry = alloc_entry(path, content_type, content, content_length);
+	dllist_insert_head(cache, cache_entry);
+	hashtable_put(cache->index, cache_entry->path, cache_entry);
+	cache->cur_size = cache->cur_size + 1;
+	if (cache->cur_size > cache->max_size)
+    {
+        struct cache_entry *old_tail = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, old_tail->path);
+    }
 }
 
 /**
@@ -135,4 +163,5 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+	return NULL;
 }

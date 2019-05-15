@@ -49,18 +49,6 @@
  * Return the value from the send() function.
  */
 
-
-// ```
-// HTTP/1.1 200 OK
-// Date: Wed Dec 20 13:05:11 PST 2017
-// Connection: close
-// Content-Length: 41749
-// Content-Type: text/html
-
-// <!DOCTYPE html><html><head><title>Lambda School ...
-// ```
-	
-// 1.1 
 int send_response(int fd, char *header, char *content_type, void *body, int content_length)
 {
     const int max_response_size = 262144;
@@ -138,9 +126,6 @@ void resp_404(int fd)
  */
 void get_file(int fd, struct cache *cache, char *request_path)
 {
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
 	char filepath[4096];
     struct file_data *filedata; 
     char *mime_type;
@@ -152,14 +137,14 @@ void get_file(int fd, struct cache *cache, char *request_path)
     if (filedata == NULL) 
 	{
         resp_404(fd);
-	    file_free(filedata);
     } 
 	else 
 	{
 		mime_type = mime_type_get(filepath);
+		cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
 		send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+	    file_free(filedata);
 	}
-
 }
 
 /**
@@ -173,6 +158,8 @@ char *find_start_of_body(char *header)
     ///////////////////
     // IMPLEMENT ME! // (Stretch)
     ///////////////////
+	(void)header;
+	return 0;
 }
 
 /**
@@ -195,8 +182,8 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the first two components of the first line of the request 
     sscanf(request, "%s %s", method, path);
-    printf("method: \"%s\"\n", method);
-    printf("path: \"%s\"\n", path);
+    // printf("method: \"%s\"\n", method);
+    // printf("path: \"%s\"\n", path);
  
     // If GET, handle the get endpoints
 	if (strcmp(method, "GET") == 0)
@@ -204,7 +191,7 @@ void handle_http_request(int fd, struct cache *cache)
 		//    Check if it's /d20 and handle that special case
 		if (strcmp(path, "/d20") == 0)
 		{
-			printf("hit d20\n");
+			// printf("hit d20\n");
 			get_d20(fd);
 		} 
 		else 
