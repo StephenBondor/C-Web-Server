@@ -72,7 +72,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 	memcpy(response + response_length, body, content_length);  
 	response_length += content_length;
 
-    // Send it all!
+    // Send it all
     int rv = send(fd, response, response_length, 0);
     if (rv < 0) {
         perror("send");
@@ -115,9 +115,7 @@ void resp_404(int fd)
     }
 
     mime_type = mime_type_get(filepath);
-
     send_response(fd, "HTTP/1.1 404 NOT FOUND", mime_type, filedata->data, filedata->size);
-
     file_free(filedata);
 }
 
@@ -135,23 +133,21 @@ void get_file(int fd, struct cache *cache, char *request_path)
     snprintf(filepath, sizeof filepath, "%s""%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
+	// Process send_response, Populate the cache 
 	if (cache_item != NULL)
     {
         send_response(fd, "HTTP/1.1 200 OK", cache_item->content_type, cache_item->content, cache_item->content_length);
     }
-    else
+    else if (filedata != NULL) 
 	{
-		if (filedata == NULL) 
-		{
-			resp_404(fd);
-		} 
-		else 
-		{
-			mime_type = mime_type_get(filepath);
-			cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
-			send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
-			file_free(filedata);
-		}
+		mime_type = mime_type_get(filepath);
+		cache_put(cache, request_path, mime_type, filedata->data, filedata->size);
+		send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+		file_free(filedata);
+	} 
+	else 
+	{
+		resp_404(fd);
 	}
 }
 
@@ -190,29 +186,21 @@ void handle_http_request(int fd, struct cache *cache)
 
     // Read the first two components of the first line of the request 
     sscanf(request, "%s %s", method, path);
-    // printf("method: \"%s\"\n", method);
-    // printf("path: \"%s\"\n", path);
- 
+
     // If GET, handle the get endpoints
-	if (strcmp(method, "GET") == 0)
+	if (strcmp(method, "GET") != 0)
 	{
-		//    Check if it's /d20 and handle that special case
-		if (strcmp(path, "/d20") == 0)
-		{
-			// printf("hit d20\n");
-			get_d20(fd);
-		} 
-		else 
-		{
-			//  Otherwise serve the requested file by calling get_file()
-			get_file(fd, cache, path);
-		}
+		printf("Nope");	// (Stretch) If POST, handle the post request
+	} 
+	else if (strcmp(path, "/d20") == 0) // Check if it's /d20 and handle that special case
+	{
+		get_d20(fd); // printf("hit d20\n");
 	} 
 	else 
 	{
-    	// (Stretch) If POST, handle the post request
-		printf("get rekt");
+		get_file(fd, cache, path); //  Otherwise serve the requested file by calling get_file()
 	}
+	
 }
 
 /**
